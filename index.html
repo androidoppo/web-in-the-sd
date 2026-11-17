@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>WebSD | Home</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet"
+              href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css"
+              integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb"
+              crossorigin="anonymous">
+        <link rel="stylesheet"
+              href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+        <link rel="stylesheet" href="/assets/css/main.css">
+        <link rel="stylesheet" href="/assets/css/group.css">
+        <!-- <link rel="stylesheet" href="/css/table.css">          -->
+        <link rel="shortcut icon" href="/assets/img/logo/mlc-favicon.png">
+<script src="dist/tvmjs_runtime.wasi.js"></script>
+<script src="dist/tvmjs.bundle.js"></script>
+
+    </head>
+    <body>
+        <div class="container">
+            <!-- This is a bit nasty, but it basically says be a column first, and on larger screens be a spaced out row -->
+            <div class="header d-flex
+                        flex-column
+                        flex-md-row justify-content-md-between">
+              <a href="/" id="navtitle">
+                  <img src="/assets/img/logo/mlc-logo-with-text-landscape.svg" height="70px"
+                       alt="MLC" id="logo">
+              </a>
+              <ul id="topbar" class="nav nav-pills justify-content-center">
+                    
+                    
+
+                        
+
+                        
+                        
+                        
+
+                      <li class="nav-item">
+                         
+                            <a class="nav-link active"
+                               href="/">
+                                Home
+                            </a>
+                         
+                        </li>
+
+                    
+
+                        
+
+                        
+                        
+                        
+
+                      <li class="nav-item">
+                         
+                            <a class="nav-link "
+                               href="https://github.com/mlc-ai/web-stable-diffusion">
+                                Github
+                            </a>
+                         
+                        </li>
+
+                    
+
+                </ul>
+            </div>
+
+            
+
+            
+            <!-- Schedule  -->
+            
+                <h1 id="web-stable-diffusion">Web Stable Diffusion</h1>
+
+<p>This project brings stable diffusion models to web browsers. <strong>Everything runs inside the browser with no need of server support.</strong> To our knowledge, this is the the world’s first stable diffusion completely running on the browser. Please check out our <a href="https://github.com/mlc-ai/web-stable-diffusion">GitHub repo</a> to see how we did it. There is also a <a href="#text-to-image-generation-demo">demo</a> which you can try out.</p>
+
+<p><img src="img/fig/browser-screenshot.png" alt="Browser screenshot" width="100%" /></p>
+
+<p>We have been seeing amazing progress through AI models recently. Thanks to the open-source effort, developers can now easily compose open-source models together to produce amazing tasks. Stable diffusion enables the automatic creation of photorealistic images as well as images in various styles based on text input. These models are usually big and compute-heavy, which means we have to pipe through all computation requests to (GPU) servers when developing web applications based on these models. Additionally, most of the workloads have to run on a specific type of GPUs where popular deep-learning frameworks are readily available.</p>
+
+<p>This project takes a step to change that status quo and bring more diversity to the ecosystem. There are a lot of reasons to get some (or all) of the computation to the client side. There are many possible benefits, such as cost reduction on the service provider side, as well as an enhancement for personalization and privacy protection. The development of personal computers (even mobile devices) is going in the direction that enables such possibilities. The client side is getting pretty powerful. For example, the latest MacBook Pro can have up to 96GB of unified RAM that can be used to store the model weights and a reasonably powerful GPU to run many of the workloads.</p>
+
+<p>Wouldn’t it be fun to directly bring the ML models to the client, have the user open a browser tab, and instantly run the stable diffusion models on the browser? This project provides the first affirmative answer to this question.</p>
+
+<h2 id="text-to-image-generation-demo">Text to Image Generation Demo</h2>
+
+<p>Because WebGPU is not yet fully stable, nor have there ever been such large-scale AI models running on top of WebGPU, so we are testing the limit here. It may not work in your environment. So far, we have only tested it on Mac with M1/M2 GPUs in Chrome Canary (a nightly build of Chrome) because WebGPU is quite new. We have tested on Windows and it does not work at this moment due to possible driver issues. We anticipate the support broadens as WebGPU matures. Please check out the <a href="#instructions">use instructions</a> and <a href="#notes">notes</a> below.</p>
+
+<h3 id="instructions">Instructions</h3>
+
+<p>If you have a Mac computer with Apple silicon, here are the instructions for you to run stable diffusion on your browser locally:</p>
+
+<ul>
+  <li>Use a browser with WebGPU enabled. WebGPU has shipped in the stable channel of Chrome and Edge (113 and later); Safari on macOS also exposes it. The demo still runs best on machines with a capable GPU and enough (unified) memory. If WebGPU is unavailable in your environment, the page reports “This browser env do not support WebGPU”.</li>
+  <li>This copy is patched for the latest WebGPU standard: the removed <code>GPUAdapter.requestAdapterInfo()</code> call was replaced by the <code>GPUAdapter.info</code> attribute (with a fallback for older engines), so GPU detection no longer fails on current browsers.</li>
+  <li>Enter your prompt, click “Generate” – we are ready to go! The image generation will start after downloading and fetching the model parameters to local cache. The download may take a few minutes, only for the first run. The subsequent refreshes and runs will be faster.</li>
+  <li>Feel free to enter different prompts as well as negative prompts to generate the image you want.</li>
+  <li>We provide an option to render images for the intermediate steps of UNet stage. Select “Run VAE every two UNet steps after step 10” for “Render intermediate steps” and click “Generate” again, and you will see how an image gets generated along the process.</li>
+</ul>
+
+<h3 id="demo">Demo</h3>
+
+<script>
+  var tvmjsGlobalEnv = tvmjsGlobalEnv || {};
+</script>
+
+<script type="module">
+  import init, { TokenizerWasm } from "./dist/tokenizers-wasm/tokenizers_wasm.js";
+
+  var initialized = false;
+  async function getTokenizer(name) {
+    if (!initialized) {
+      await init();
+    }
+    const jsonText = await (await fetch("https://huggingface.co/" + name + "/raw/main/tokenizer.json")).text();
+    return new TokenizerWasm(jsonText);
+  }
+
+  tvmjsGlobalEnv.getTokenizer = getTokenizer;
+</script>
+
+<script src="dist/stable_diffusion.js"></script>
+
+<div>
+  Input prompt: <input name="inputPrompt" id="inputPrompt" type="text" value="A photo of an astronaut riding a horse on mars" size="77" /> <br />
+  Negative prompt (optional): <input name="negativePrompt" id="negativePrompt" type="text" value="" size="77" />
+</div>
+
+<div>
+  Select scheduler -
+  <select name="scheduler" id="schedulerId">
+    <option value="0">Multi-step DPM Solver (20 steps)</option>
+    <option value="1">PNDM (50 steps)</option>
+  </select>
+
+  <br />
+
+  Render intermediate steps (may slow down execution) -
+  <select name="vae-cycle" id="vaeCycle">
+    <option value="-1">No</option>
+    <option value="2">Run VAE every two UNet steps after step 10</option>
+  </select>
+
+  <div id="progress">
+    <label id="gpu-tracker-label"></label><br />
+    <label id="progress-tracker-label"></label><br />
+    <progress id="progress-tracker-progress" max="100" value="100"> </progress>
+  </div>
+  <button onclick="tvmjsGlobalEnv.asyncOnGenerate()">Generate</button>
+</div>
+
+<div>
+<canvas id="canvas" width="512" height="512"></canvas>
+</div>
+<div id="log"></div>
+
+<h3 id="notes">Notes</h3>
+
+<ul>
+  <li>WebGPU spec does comes with FP16 support already, but the implementation does not yet support this feature at this moment. As a result, the memory consumption of running the demo is about 7GB. For Apple silicon Mac with only 8GB of unified memory, it may take longer (a few minutes) to generate an image. This demo may also work for Mac with AMD GPU.</li>
+  <li>Please check out our <a href="https://github.com/mlc-ai/web-stable-diffusion">GitHub repo</a> for running the same shader flow locally on your GPU device through the native driver. Right now, there are still gaps (e.g., without launching Chrome from command line, Chrome’s WebGPU implementation inserts bound clips for all array index access, such that <code class="language-plaintext highlighter-rouge">a[i]</code> becomes <code class="language-plaintext highlighter-rouge">a[min(i, a.size)]</code>, which are not optimized out by the downstream shader compilers), but we believe it is feasible to close such gaps as WebGPU dispatches to these native drivers.</li>
+</ul>
+
+<h2 id="disclaimer">Disclaimer</h2>
+
+<p>This demo site is for research purposes only. Please conform to the <a href="https://huggingface.co/runwayml/stable-diffusion-v1-5#uses">uses of stable diffusion models</a>.</p>
+
+            
+        </div> <!-- /container -->
+
+        <!-- Support retina images. -->
+        <script type="text/javascript"
+                src="/assets/js/srcset-polyfill.js"></script>
+    </body>
+
+</html>
