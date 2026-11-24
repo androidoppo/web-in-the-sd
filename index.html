@@ -16,6 +16,7 @@
         <link rel="shortcut icon" href="/assets/img/logo/mlc-favicon.png">
 <script src="dist/tvmjs_runtime.wasi.js"></script>
 <script src="dist/tvmjs.bundle.js"></script>
+<script src="assets/js/debug-log.js"></script>
 
     </head>
     <body>
@@ -100,6 +101,7 @@
   <li>Enter your prompt, click “Generate” – we are ready to go! The image generation will start after downloading and fetching the model parameters to local cache. The download may take a few minutes, only for the first run. The subsequent refreshes and runs will be faster.</li>
   <li>Feel free to enter different prompts as well as negative prompts to generate the image you want.</li>
   <li>We provide an option to render images for the intermediate steps of UNet stage. Select “Run VAE every two UNet steps after step 10” for “Render intermediate steps” and click “Generate” again, and you will see how an image gets generated along the process.</li>
+  <li>If something goes wrong, open the on-page “Debug log” panel below the canvas and copy the latest error lines.</li>
 </ul>
 
 <h3 id="demo">Demo</h3>

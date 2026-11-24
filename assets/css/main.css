@@ -1816,3 +1816,46 @@ latex-js {
 }
 
 /*# sourceMappingURL=main.css.map */
+.debug-log-panel {
+  margin: 1rem 0;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: #fafafa;
+}
+
+.debug-log-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid #ddd;
+  background: #f0f0f0;
+}
+
+.debug-log-toolbar button,
+.debug-log-toolbar select {
+  font-size: 0.875rem;
+}
+
+.debug-log-output {
+  height: 220px;
+  margin: 0;
+  padding: 0.75rem;
+  overflow: auto;
+  background: #111;
+  color: #eee;
+  font-size: 0.8125rem;
+  line-height: 1.35;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.debug-log-line {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.debug-log-debug { color: #aaa; }
+.debug-log-info  { color: #d6d6d6; }
+.debug-log-warn  { color: #ffd479; }
+.debug-log-error { color: #ff8a8a; }

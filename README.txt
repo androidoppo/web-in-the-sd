@@ -57,3 +57,15 @@ GPU 検出は修正済みのため、現行ブラウザでエラーにならず�
 動作確認をお願いします。
 
 元サイト: https://websd.mlc.ai/ / https://github.com/mlc-ai/web-stable-diffusion
+
+追加修正 (デバッグ/安定性)
+--------------------------
+- Generate の二重起動ガード (requestInProgress) が効いていない問題を修正した
+  (コンストラクタで初期化、finally で必ず解除)。
+- 進捗ラベルとデバッグログの DOM 書き込みを innerHTML から textContent に変更し、
+  HTML 注入やタグ崩れを防いだ。
+- canvas 下に Debug log パネルを追加 (assets/js/debug-log.js)。
+  level 絞り込み、pause、clear、copy に対応。
+- console.log/warn/error、window.onerror、unhandledrejection を同一パネルに表示する。
+- schedulerId/vaeCycle を Number に変換してからパイプラインへ渡すようにした。
+- scheduler / localStableDiffusionInst の暗黙グローバルを解消 (let / const)。

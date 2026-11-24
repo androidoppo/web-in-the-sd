@@ -292,6 +292,7 @@ class StableDiffusionPipeline {
     // get latents
     const latentShape = [1, 4, 64, 64];
 
+    let scheduler;
     var unetNumSteps;
     if (schedulerId == 0) {
       scheduler = new TVMDPMSolverMultistepScheduler(
@@ -406,7 +407,7 @@ class StableDiffusionInstance {
     this.tvm = undefined;
     this.pipeline = undefined;
     this.config = undefined;
-    this.generateInProgress = false;
+    this.requestInProgress = false;
     this.logger = console.log;
   }
   /**
@@ -420,12 +421,10 @@ class StableDiffusionInstance {
       return;
     }
 
-    if (document.getElementById("log") !== undefined) {
+    const logEl = document.getElementById("log");
+    if (logEl && window.DebugLog) {
       this.logger = function (message) {
-        console.log(message);
-        const d = document.createElement("div");
-        d.innerHTML = message;
-        document.getElementById("log").appendChild(d);
+        window.DebugLog.info(message);
       };
     }
 
@@ -453,28 +452,31 @@ class StableDiffusionInstance {
         if (infoText !== undefined) {
           label += " - " + infoText;
         }
-        document.getElementById(
-          "gpu-tracker-label").innerHTML = ("Initialize GPU device: " + label);
+        const gpuLabel = document.getElementById("gpu-tracker-label");
+        if (gpuLabel) gpuLabel.textContent = "Initialize GPU device: " + label;
         tvm.initWebGPU(output.device);
       } else {
-        document.getElementById(
-          "gpu-tracker-label").innerHTML = "This browser env do not support WebGPU";
+        const gpuLabel = document.getElementById("gpu-tracker-label");
+        if (gpuLabel) gpuLabel.textContent = "This browser env do not support WebGPU";
         this.reset();
         throw Error("This browser env do not support WebGPU");
       }
     } catch (err) {
-      document.getElementById("gpu-tracker-label").innerHTML = (
+      const gpuLabel = document.getElementById("gpu-tracker-label");
+      if (gpuLabel) gpuLabel.textContent = (
         "Find an error initializing the WebGPU device " + err.toString()
       );
-      console.log(err.stack);
+      if (window.DebugLog) window.DebugLog.error(err.stack || err);
       this.reset();
       throw Error("Find an error initializing WebGPU: " + err.toString());
     }
 
     this.tvm = tvm;
     function initProgressCallback(report) {
-      document.getElementById("progress-tracker-label").innerHTML = report.text;
-      document.getElementById("progress-tracker-progress").value = report.progress * 100;
+      const label = document.getElementById("progress-tracker-label");
+      const bar = document.getElementById("progress-tracker-progress");
+      if (label) label.textContent = report.text;
+      if (bar) bar.value = report.progress * 100;
     }
     tvm.registerInitProgressCallback(initProgressCallback);
     if (!cacheUrl.startsWith("http")) {
@@ -530,8 +532,10 @@ class StableDiffusionInstance {
         counter = totalNumSteps;
       }
       text += ", " + Math.ceil(timeElapsed) + " secs elapsed.";
-      document.getElementById("progress-tracker-label").innerHTML = text;
-      document.getElementById("progress-tracker-progress").value = (counter / totalNumSteps) * 100;
+      const label = document.getElementById("progress-tracker-label");
+      const bar = document.getElementById("progress-tracker-progress");
+      if (label) label.textContent = text;
+      if (bar) bar.value = (counter / totalNumSteps) * 100;
     }
     return progressCallback;
   }
@@ -586,15 +590,24 @@ class StableDiffusionInstance {
       await this.asyncInit();
       const prompt = document.getElementById("inputPrompt").value;
       const negPrompt = document.getElementById("negativePrompt").value;
-      const schedulerId = document.getElementById("schedulerId").value;
-      const vaeCycle = document.getElementById("vaeCycle").value;
+      const schedulerId = Number(document.getElementById("schedulerId").value);
+      const vaeCycle = Number(document.getElementById("vaeCycle").value);
+      if (window.DebugLog) {
+        window.DebugLog.info("generate request: " + JSON.stringify({
+          prompt,
+          negPrompt,
+          schedulerId,
+          vaeCycle,
+        }));
+      }
       await this.pipeline.generate(prompt, negPrompt, this.#getProgressCallback(), schedulerId, vaeCycle);
     } catch (err) {
       this.logger("Generate error, " + err.toString());
-      console.log(err.stack);
+      if (window.DebugLog) window.DebugLog.error(err.stack || err);
       this.reset();
+    } finally {
+      this.requestInProgress = false;
     }
-    this.requestInProgress = false;
   }
 
   /**
@@ -609,7 +622,7 @@ class StableDiffusionInstance {
   }
 }
 
-localStableDiffusionInst = new StableDiffusionInstance();
+const localStableDiffusionInst = new StableDiffusionInstance();
 
 tvmjsGlobalEnv.asyncOnGenerate = async function () {
   await localStableDiffusionInst.generate();
